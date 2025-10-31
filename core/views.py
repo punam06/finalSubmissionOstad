@@ -11,6 +11,8 @@ from .serializers import (
 )
 from django.conf import settings
 from .utils import send_donation_approved_email, notify_donors_blood_needed
+from django.db import transaction
+from django.db.models import F
 
 User = get_user_model()
 
@@ -126,7 +128,27 @@ class DonationViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Only admin can approve.'}, status=status.HTTP_403_FORBIDDEN)
         donation = self.get_object()
         donation.approved = True
-        donation.save()
+        # Save and atomically update blood bank units if bank present
+        with transaction.atomic():
+            donation.save()
+            try:
+                bank = donation.blood_bank
+                if bank and donation.units > 0:
+                    field_map = {
+                        'A+': 'units_a_plus', 'A-': 'units_a_minus',
+                        'B+': 'units_b_plus', 'B-': 'units_b_minus',
+                        'O+': 'units_o_plus', 'O-': 'units_o_minus',
+                        'AB+': 'units_ab_plus', 'AB-': 'units_ab_minus',
+                    }
+                    field = field_map.get(donation.blood_group)
+                    if field:
+                        # Use F() to avoid race conditions
+                        setattr(BloodBank.objects.filter(pk=bank.pk).first(), field, F(field) + donation.units)
+                        # Persist increment on the bank
+                        BloodBank.objects.filter(pk=bank.pk).update(**{field: F(field) + donation.units})
+            except Exception:
+                # don't block approval if bank update fails
+                pass
         # send email notification to donor
         try:
             send_donation_approved_email(donation)

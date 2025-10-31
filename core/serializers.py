@@ -34,6 +34,15 @@ class DonorProfileSerializer(serializers.ModelSerializer):
         model = DonorProfile
         fields = ('id', 'user', 'phone', 'blood_group', 'city', 'last_donated', 'available')
 
+    def validate(self, attrs):
+        # Prevent duplicate donor profiles for a user
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        if self.instance is None and user is not None:
+            if DonorProfile.objects.filter(user=user).exists():
+                raise serializers.ValidationError('Donor profile already exists for this user.')
+        return attrs
+
 
 class BloodBankSerializer(serializers.ModelSerializer):
     class Meta:
@@ -49,6 +58,12 @@ class BloodRequestSerializer(serializers.ModelSerializer):
         fields = ('id', 'requester', 'blood_group', 'units', 'status', 'created_at')
         read_only_fields = ('status', 'created_at')
 
+    def validate_blood_group(self, value):
+        valid = [g[0] for g in DonorProfile.BLOOD_GROUPS]
+        if value not in valid:
+            raise serializers.ValidationError('Invalid blood group.')
+        return value
+
 
 class DonationSerializer(serializers.ModelSerializer):
     donor = UserSerializer(read_only=True)
@@ -57,3 +72,9 @@ class DonationSerializer(serializers.ModelSerializer):
         model = Donation
         fields = ('id', 'donor', 'blood_bank', 'blood_group', 'units', 'approved', 'created_at')
         read_only_fields = ('approved', 'created_at')
+
+    def validate_blood_group(self, value):
+        valid = [g[0] for g in DonorProfile.BLOOD_GROUPS]
+        if value not in valid:
+            raise serializers.ValidationError('Invalid blood group.')
+        return value
