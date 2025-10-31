@@ -14,6 +14,8 @@ export default function Nav(){
         <div className="d-flex">
           <a className="btn btn-outline-primary me-2" href="/login">Login</a>
           <a className="btn btn-outline-success me-2" href="/register">Register</a>
+          <a className="btn btn-outline-secondary me-2" href="/donate">Donate</a>
+          <a className="btn btn-outline-warning me-2" href="/request">Request</a>
           <button className="btn btn-danger" onClick={logout}>Logout</button>
         </div>
       </div>
