@@ -11,6 +11,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import AdminRequests from './pages/AdminRequests'
 import AdminDonations from './pages/AdminDonations'
 import ProtectedRoute from './components/ProtectedRoute'
+import Profile from './pages/Profile'
 
 export default function App(){
   return (
@@ -25,6 +26,7 @@ export default function App(){
           <Route path="/request" element={<ProtectedRoute><RequestBlood/></ProtectedRoute>} />
           <Route path="/admin/requests" element={<ProtectedRoute><AdminRequests/></ProtectedRoute>} />
           <Route path="/admin/donations" element={<ProtectedRoute><AdminDonations/></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile/></ProtectedRoute>} />
           <Route path="/" element={<ProtectedRoute><DonorDashboard/></ProtectedRoute>} />
         </Routes>
       </div>

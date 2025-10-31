@@ -13,6 +13,7 @@ from django.conf import settings
 from .utils import send_donation_approved_email, notify_donors_blood_needed
 from django.db import transaction
 from django.db.models import F
+from rest_framework.parsers import MultiPartParser, FormParser
 
 User = get_user_model()
 
@@ -50,6 +51,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 class DonorProfileViewSet(viewsets.ModelViewSet):
     queryset = DonorProfile.objects.select_related('user').all()
     serializer_class = DonorProfileSerializer
+    parser_classes = (MultiPartParser, FormParser)
 
     def get_permissions(self):
         if self.action in ['create']:

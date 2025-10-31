@@ -32,7 +32,16 @@ class DonorProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DonorProfile
-        fields = ('id', 'user', 'phone', 'blood_group', 'city', 'last_donated', 'available')
+        fields = ('id', 'user', 'phone', 'blood_group', 'city', 'last_donated', 'available', 'photo')
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # include photo URL if present
+        if instance.photo and hasattr(instance.photo, 'url'):
+            data['photo_url'] = instance.photo.url
+        else:
+            data['photo_url'] = None
+        return data
 
     def validate(self, attrs):
         # Prevent duplicate donor profiles for a user

@@ -26,6 +26,7 @@ class DonorProfile(models.Model):
     city = models.CharField(max_length=100, blank=True)
     last_donated = models.DateField(null=True, blank=True)
     available = models.BooleanField(default=True)
+    photo = models.ImageField(upload_to='profiles/', null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.blood_group}"
