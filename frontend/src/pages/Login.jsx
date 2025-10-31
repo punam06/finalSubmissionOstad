@@ -10,8 +10,9 @@ export default function Login(){
     e.preventDefault()
     try{
       const resp = await api.post('auth/login/', { username, password })
-      const token = resp.data.access
-      api.setAuthToken(token)
+      const access = resp.data.access
+      const refresh = resp.data.refresh
+      api.setTokens({ access, refresh })
       window.location.href = '/'
     }catch(err){
       setError(err.response?.data || 'Login failed')
