@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import api from '../services/api'
 import { useToast } from '../components/ToastContext'
+import Modal from '../components/Modal'
 
 export default function AdminDonations(){
   const [donations, setDonations] = useState([])
@@ -89,33 +90,17 @@ export default function AdminDonations(){
       </ul>
 
       {/* Modal (Bootstrap markup) */}
-      {modalOpen && (
-        <div className="modal d-block" tabIndex="-1" role="dialog" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
-          <div className="modal-dialog" role="document">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Approve Donation</h5>
-                <button type="button" className="btn-close" aria-label="Close" onClick={closeModal}></button>
-              </div>
-              <div className="modal-body">
-                <p>Donation: <strong>{modalDonation?.blood_group}</strong> x{modalDonation?.units} by {modalDonation?.donor?.username || 'Unknown'}</p>
-                {modalDonation && !modalDonation.blood_bank && (
-                  <div className="mb-3">
-                    <label className="form-label">Assign Blood Bank (id)</label>
-                    <input className={`form-control`} value={bankInput} onChange={e=>setBankInput(e.target.value)} />
-                    <div className="form-text">Enter numeric blood bank id to attribute units to.</div>
-                  </div>
-                )}
-                {modalDonation && modalDonation.blood_bank && <div className="alert alert-info">This donation will be attributed to bank {modalDonation.blood_bank}</div>}
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={closeModal}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={confirmApprove} disabled={actionLoading[modalDonation?.id]}>Confirm Approve</button>
-              </div>
-            </div>
+      <Modal isOpen={modalOpen} title="Approve Donation" onClose={closeModal} onConfirm={confirmApprove} confirmDisabled={actionLoading[modalDonation?.id]} confirmText="Confirm Approve">
+        <p>Donation: <strong>{modalDonation?.blood_group}</strong> x{modalDonation?.units} by {modalDonation?.donor?.username || 'Unknown'}</p>
+        {modalDonation && !modalDonation.blood_bank && (
+          <div className="mb-3">
+            <label className="form-label">Assign Blood Bank (id)</label>
+            <input className={`form-control`} value={bankInput} onChange={e=>setBankInput(e.target.value)} />
+            <div className="form-text">Enter numeric blood bank id to attribute units to.</div>
           </div>
-        </div>
-      )}
+        )}
+        {modalDonation && modalDonation.blood_bank && <div className="alert alert-info">This donation will be attributed to bank {modalDonation.blood_bank}</div>}
+      </Modal>
     </div>
   )
 }
