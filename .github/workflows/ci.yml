@@ -33,3 +33,18 @@ jobs:
       - name: Run tests
         run: |
           python manage.py test core -v 2
+
+      - name: Set up Node.js for frontend tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          npm run test
