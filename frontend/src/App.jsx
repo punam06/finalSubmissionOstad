@@ -1,16 +1,24 @@
 import React from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Nav from './components/Nav'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import DonorDashboard from './pages/DonorDashboard'
+import AdminDashboard from './pages/AdminDashboard'
+import 'bootstrap/dist/css/bootstrap.min.css'
 
 export default function App(){
   return (
-    <div style={{padding:20, fontFamily:'Arial, sans-serif'}}>
-      <h1>Blood Management System (Frontend)</h1>
-      <p>This is a minimal React scaffold. Use the API at <code>/api/</code> to authenticate and fetch data.</p>
-      <ul>
-        <li>Login: /api/auth/login/</li>
-        <li>Register: /api/auth/register/</li>
-        <li>Donor profile: /api/donor-profiles/</li>
-      </ul>
-      <p>Build a full SPA from here (auth, dashboards, search, etc.).</p>
-    </div>
+    <BrowserRouter>
+      <Nav />
+      <div className="container">
+        <Routes>
+          <Route path="/login" element={<Login/>} />
+          <Route path="/register" element={<Register/>} />
+          <Route path="/admin" element={<AdminDashboard/>} />
+          <Route path="/" element={<DonorDashboard/>} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   )
 }
