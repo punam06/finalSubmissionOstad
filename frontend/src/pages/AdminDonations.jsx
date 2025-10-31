@@ -8,6 +8,13 @@ export default function AdminDonations(){
   const [actionLoading, setActionLoading] = useState({})
   const [errors, setErrors] = useState({})
 
+  // modal state
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalDonation, setModalDonation] = useState(null)
+  const [bankInput, setBankInput] = useState('')
+
+  const toast = useToast()
+
   useEffect(()=>{
     api.loadToken()
     ;(async ()=>{
@@ -20,28 +27,36 @@ export default function AdminDonations(){
     })()
   },[])
 
-  const approve = async (d) => {
-    const id = d.id
-    const proceed = window.confirm('Approve this donation?')
-    if(!proceed) return
+  const openApproveModal = (d) => {
+    setModalDonation(d)
+    setBankInput(d.blood_bank ? String(d.blood_bank) : '')
+    setModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setModalOpen(false)
+    setModalDonation(null)
+    setBankInput('')
+  }
+
+  const confirmApprove = async () => {
+    if(!modalDonation) return
+    const id = modalDonation.id
     setActionLoading(prev => ({...prev, [id]: true}))
     setErrors(prev => ({...prev, [id]: null}))
     try{
-      // if donation has no bank assigned, prompt admin to provide one
-      if(!d.blood_bank){
-        const bankId = window.prompt('This donation has no blood bank set. Enter bank id to attribute (numeric):')
-        if(!bankId) throw new Error('Bank id required to approve this donation')
-        if(!/^\d+$/.test(bankId)) throw new Error('Bank id must be numeric')
-        // patch donation to set bank
-        await api.patch(`donations/${id}/`, { blood_bank: Number(bankId) })
-        // refresh local donation entry to include bank
-        d = { ...d, blood_bank: Number(bankId) }
-        setDonations(prev => prev.map(x => x.id===id ? { ...x, blood_bank: Number(bankId) } : x))
+      // if no bank assigned, require bankInput
+      if(!modalDonation.blood_bank){
+        if(!bankInput) throw new Error('Bank id required to approve this donation')
+        if(!/^\d+$/.test(bankInput)) throw new Error('Bank id must be numeric')
+        await api.patch(`donations/${id}/`, { blood_bank: Number(bankInput) })
+        setDonations(prev => prev.map(x => x.id===id ? { ...x, blood_bank: Number(bankInput) } : x))
       }
 
       await api.post(`donations/${id}/approve/`)
       setDonations(prev => prev.map(x=> x.id===id ? {...x, approved:true} : x))
       toast.success('Donation approved')
+      closeModal()
     }catch(err){
       const msg = err.response?.data?.detail || JSON.stringify(err.response?.data || err.message)
       setErrors(prev => ({...prev, [id]: String(msg)}))
@@ -66,11 +81,41 @@ export default function AdminDonations(){
             </div>
             <div>
               <span className={`badge me-2 ${d.approved ? 'bg-success' : 'bg-secondary'}`}>{d.approved ? 'approved' : 'pending'}</span>
-              {!d.approved && <button className="btn btn-sm btn-success" onClick={()=>approve(d.id)}>Approve</button>}
+              {!d.approved && <button className="btn btn-sm btn-success" onClick={()=>openApproveModal(d)} disabled={actionLoading[d.id]}>{actionLoading[d.id]? 'Processing...':'Approve'}</button>}
+              {errors[d.id] && <div className="text-danger small mt-1">{errors[d.id]}</div>}
             </div>
           </li>
         ))}
       </ul>
+
+      {/* Modal (Bootstrap markup) */}
+      {modalOpen && (
+        <div className="modal d-block" tabIndex="-1" role="dialog" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+          <div className="modal-dialog" role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Approve Donation</h5>
+                <button type="button" className="btn-close" aria-label="Close" onClick={closeModal}></button>
+              </div>
+              <div className="modal-body">
+                <p>Donation: <strong>{modalDonation?.blood_group}</strong> x{modalDonation?.units} by {modalDonation?.donor?.username || 'Unknown'}</p>
+                {modalDonation && !modalDonation.blood_bank && (
+                  <div className="mb-3">
+                    <label className="form-label">Assign Blood Bank (id)</label>
+                    <input className={`form-control`} value={bankInput} onChange={e=>setBankInput(e.target.value)} />
+                    <div className="form-text">Enter numeric blood bank id to attribute units to.</div>
+                  </div>
+                )}
+                {modalDonation && modalDonation.blood_bank && <div className="alert alert-info">This donation will be attributed to bank {modalDonation.blood_bank}</div>}
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={closeModal}>Cancel</button>
+                <button type="button" className="btn btn-primary" onClick={confirmApprove} disabled={actionLoading[modalDonation?.id]}>Confirm Approve</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
