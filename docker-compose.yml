@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-blooddb}
+      POSTGRES_USER: ${POSTGRES_USER:-blooduser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bloodpass}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    command: gunicorn blood_management.wsgi:application --bind 0.0.0.0:8000
+    env_file: .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
+
+volumes:
+  db_data:
+  static_volume:
+  media_volume:

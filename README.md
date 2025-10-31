@@ -44,6 +44,22 @@ CI: A GitHub Actions workflow is included at `.github/workflows/ci.yml` which ru
 
 <!-- ci-trigger: small non-functional update to trigger CI -->
 
+## Docker / quick local deploy
+
+You can run the app locally with Docker and Postgres using the provided docker-compose. Copy `.env.example` to `.env` and update values (especially `SECRET_KEY` and DB passwords) before running.
+
+Start the app:
+
+```bash
+cp .env.example .env
+# edit .env to set SECRET_KEY and passwords
+docker-compose up --build
+```
+
+The Django app will be available on http://localhost:8000. The compose setup runs Postgres and the Django app; the entrypoint runs migrations and collects static files on container start.
+
+For production you'd want to set `DEBUG=0`, use a managed Postgres, configure a proper `ALLOWED_HOSTS` value, secure the `SECRET_KEY`, and configure static/media hosting (S3) and an SMTP provider for emails.
+
 5. API endpoints (example):
 
 - POST /api/auth/register/  -> register (username, email, password, role)
