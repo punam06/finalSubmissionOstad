@@ -42,6 +42,8 @@ Local (recommended in a virtualenv):
 
 CI: A GitHub Actions workflow is included at `.github/workflows/ci.yml` which runs the core test suite on push and pull requests to `main`.
 
+<!-- ci-trigger: small non-functional update to trigger CI -->
+
 5. API endpoints (example):
 
 - POST /api/auth/register/  -> register (username, email, password, role)
