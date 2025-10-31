@@ -4,6 +4,8 @@ import api from '../services/api'
 export default function AdminRequests(){
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
+  const [actionLoading, setActionLoading] = useState({})
+  const [errors, setErrors] = useState({})
 
   useEffect(()=>{
     api.loadToken()
@@ -18,11 +20,19 @@ export default function AdminRequests(){
   },[])
 
   const action = async (id, verb) => {
+    // confirmation
+    const ok = window.confirm(`Are you sure you want to ${verb} this request?`)
+    if(!ok) return
+    setActionLoading(prev => ({...prev, [id]: true}))
+    setErrors(prev => ({...prev, [id]: null}))
     try{
-      await api.post(`blood-requests/${id}/${verb}/`)
-      setRequests(requests.map(r=> r.id===id ? {...r, status: verb==='approve'?'approved':'rejected'} : r))
+      const resp = await api.post(`blood-requests/${id}/${verb}/`)
+      setRequests(requests.map(r=> r.id===id ? {...r, status: resp.data.status || (verb==='approve'?'approved':'rejected')} : r))
     }catch(err){
-      alert('Action failed: ' + JSON.stringify(err.response?.data || err.message))
+      const msg = err.response?.data?.detail || JSON.stringify(err.response?.data || err.message)
+      setErrors(prev => ({...prev, [id]: String(msg)}))
+    }finally{
+      setActionLoading(prev => ({...prev, [id]: false}))
     }
   }
 
@@ -43,10 +53,11 @@ export default function AdminRequests(){
               <span className={`badge me-2 ${r.status==='pending'?'bg-secondary': r.status==='approved'?'bg-success':'bg-danger'}`}>{r.status}</span>
               {r.status==='pending' && (
                 <>
-                  <button className="btn btn-sm btn-success me-2" onClick={()=>action(r.id,'approve')}>Approve</button>
-                  <button className="btn btn-sm btn-danger" onClick={()=>action(r.id,'reject')}>Reject</button>
+                  <button className="btn btn-sm btn-success me-2" onClick={()=>action(r.id,'approve')} disabled={actionLoading[r.id]}>{actionLoading[r.id]? 'Approving...' : 'Approve'}</button>
+                  <button className="btn btn-sm btn-danger" onClick={()=>action(r.id,'reject')} disabled={actionLoading[r.id]}>{actionLoading[r.id]? 'Rejecting...' : 'Reject'}</button>
                 </>
               )}
+              {errors[r.id] && <div className="text-danger small mt-1">{errors[r.id]}</div>}
             </div>
           </li>
         ))}
