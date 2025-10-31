@@ -1,5 +1,6 @@
 import React, {useState} from 'react'
 import api from '../services/api'
+import { useToast } from '../components/ToastContext'
 
 export default function Donate(){
   const [form, setForm] = useState({blood_bank: '', blood_group: 'O+', units: 1})
@@ -34,8 +35,11 @@ export default function Donate(){
       setMsg('Donation request created')
       setForm({blood_bank: '', blood_group: 'O+', units: 1})
       setErrors({})
+      toast.success('Donation request created')
     }catch(err){
-      setMsg('Error: ' + JSON.stringify(err.response?.data || err.message))
+      const errMsg = JSON.stringify(err.response?.data || err.message)
+      setMsg('Error: ' + errMsg)
+      toast.error('Donation failed: ' + errMsg)
     }finally{
       setIsSubmitting(false)
     }

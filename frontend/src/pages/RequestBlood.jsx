@@ -1,5 +1,6 @@
 import React, {useState} from 'react'
 import api from '../services/api'
+import { useToast } from '../components/ToastContext'
 
 export default function RequestBlood(){
   const [form, setForm] = useState({blood_group: 'O+', units: 1})
@@ -31,8 +32,11 @@ export default function RequestBlood(){
       setMsg('Blood request submitted')
       setForm({blood_group: 'O+', units: 1})
       setErrors({})
+      toast.success('Blood request submitted')
     }catch(err){
-      setMsg('Error: ' + JSON.stringify(err.response?.data || err.message))
+      const errMsg = JSON.stringify(err.response?.data || err.message)
+      setMsg('Error: ' + errMsg)
+      toast.error('Request failed: ' + errMsg)
     }finally{
       setIsSubmitting(false)
     }

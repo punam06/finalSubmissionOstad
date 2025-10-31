@@ -1,6 +1,7 @@
 import React, {useState} from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
+import { useToast } from '../components/ToastContext'
 
 export default function Register(){
   const navigate = useNavigate()
@@ -36,9 +37,11 @@ export default function Register(){
       })
       // navigate to login page
       navigate('/login', { replace: true })
+      toast.success('Registered — please login')
     }catch(err){
       const server = err.response?.data || err.message
       setMsg('Registration failed: ' + JSON.stringify(server))
+      toast.error('Registration failed')
     }finally{
       setIsSubmitting(false)
     }

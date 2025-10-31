@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import api from '../services/api'
+import { useToast } from '../components/ToastContext'
 
 export default function AdminRequests(){
   const [requests, setRequests] = useState([])
@@ -28,9 +29,11 @@ export default function AdminRequests(){
     try{
       const resp = await api.post(`blood-requests/${id}/${verb}/`)
       setRequests(requests.map(r=> r.id===id ? {...r, status: resp.data.status || (verb==='approve'?'approved':'rejected')} : r))
+      toast.success(`Request ${verb}ed successfully`)
     }catch(err){
       const msg = err.response?.data?.detail || JSON.stringify(err.response?.data || err.message)
       setErrors(prev => ({...prev, [id]: String(msg)}))
+      toast.error(`Action failed: ${String(msg)}`)
     }finally{
       setActionLoading(prev => ({...prev, [id]: false}))
     }

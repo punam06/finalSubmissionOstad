@@ -1,5 +1,6 @@
 import React, {useEffect, useState, useRef} from 'react'
 import api from '../services/api'
+import { useToast } from '../components/ToastContext'
 
 export default function Profile(){
   const [profile, setProfile] = useState(null)
@@ -73,8 +74,11 @@ export default function Profile(){
         setProfile(resp.data)
       }
       setErrors({})
+      toast.success('Profile saved')
     }catch(err){
-      setMsg('Error: ' + JSON.stringify(err.response?.data || err.message))
+      const errMsg = JSON.stringify(err.response?.data || err.message)
+      setMsg('Error: ' + errMsg)
+      toast.error('Save failed: ' + errMsg)
     }finally{
       setIsSubmitting(false)
     }

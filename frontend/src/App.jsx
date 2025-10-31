@@ -12,24 +12,27 @@ import AdminRequests from './pages/AdminRequests'
 import AdminDonations from './pages/AdminDonations'
 import ProtectedRoute from './components/ProtectedRoute'
 import Profile from './pages/Profile'
+import { ToastProvider } from './components/ToastContext'
 
 export default function App(){
   return (
-    <BrowserRouter>
-      <Nav />
-      <div className="container">
-        <Routes>
-          <Route path="/login" element={<Login/>} />
-          <Route path="/register" element={<Register/>} />
-          <Route path="/admin" element={<ProtectedRoute><AdminDashboard/></ProtectedRoute>} />
-          <Route path="/donate" element={<ProtectedRoute><Donate/></ProtectedRoute>} />
-          <Route path="/request" element={<ProtectedRoute><RequestBlood/></ProtectedRoute>} />
-          <Route path="/admin/requests" element={<ProtectedRoute><AdminRequests/></ProtectedRoute>} />
-          <Route path="/admin/donations" element={<ProtectedRoute><AdminDonations/></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><Profile/></ProtectedRoute>} />
-          <Route path="/" element={<ProtectedRoute><DonorDashboard/></ProtectedRoute>} />
-        </Routes>
-      </div>
-    </BrowserRouter>
+    <ToastProvider>
+      <BrowserRouter>
+        <Nav />
+        <div className="container">
+          <Routes>
+            <Route path="/login" element={<Login/>} />
+            <Route path="/register" element={<Register/>} />
+            <Route path="/admin" element={<ProtectedRoute><AdminDashboard/></ProtectedRoute>} />
+            <Route path="/donate" element={<ProtectedRoute><Donate/></ProtectedRoute>} />
+            <Route path="/request" element={<ProtectedRoute><RequestBlood/></ProtectedRoute>} />
+            <Route path="/admin/requests" element={<ProtectedRoute><AdminRequests/></ProtectedRoute>} />
+            <Route path="/admin/donations" element={<ProtectedRoute><AdminDonations/></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile/></ProtectedRoute>} />
+            <Route path="/" element={<ProtectedRoute><DonorDashboard/></ProtectedRoute>} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </ToastProvider>
   )
 }

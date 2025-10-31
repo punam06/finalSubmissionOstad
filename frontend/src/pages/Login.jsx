@@ -1,6 +1,7 @@
 import React, {useState} from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
+import { useToast } from '../components/ToastContext'
 
 export default function Login(){
   const navigate = useNavigate()
@@ -37,9 +38,12 @@ export default function Login(){
         // fallback
         navigate('/', { replace: true })
       }
+      toast.success('Logged in')
     }catch(err){
       const server = err.response?.data || err.message || 'Login failed'
-      setError(typeof server === 'string' ? server : JSON.stringify(server))
+      const msg = typeof server === 'string' ? server : JSON.stringify(server)
+      setError(msg)
+      toast.error('Login failed: ' + msg)
     }finally{
       setIsSubmitting(false)
     }

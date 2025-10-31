@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import api from '../services/api'
+import { useToast } from '../components/ToastContext'
 
 export default function AdminDonations(){
   const [donations, setDonations] = useState([])
@@ -40,9 +41,11 @@ export default function AdminDonations(){
 
       await api.post(`donations/${id}/approve/`)
       setDonations(prev => prev.map(x=> x.id===id ? {...x, approved:true} : x))
+      toast.success('Donation approved')
     }catch(err){
       const msg = err.response?.data?.detail || JSON.stringify(err.response?.data || err.message)
       setErrors(prev => ({...prev, [id]: String(msg)}))
+      toast.error(`Approve failed: ${String(msg)}`)
     }finally{
       setActionLoading(prev => ({...prev, [id]: false}))
     }
