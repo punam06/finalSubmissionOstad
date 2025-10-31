@@ -102,8 +102,27 @@ class BloodRequestViewSet(viewsets.ModelViewSet):
         if request.user.role != 'admin':
             return Response({'detail': 'Only admin can approve.'}, status=status.HTTP_403_FORBIDDEN)
         req = self.get_object()
-        req.status = 'approved'
-        req.save()
+        # find a blood bank with sufficient units for the requested group
+        field_map = {
+            'A+': 'units_a_plus', 'A-': 'units_a_minus',
+            'B+': 'units_b_plus', 'B-': 'units_b_minus',
+            'O+': 'units_o_plus', 'O-': 'units_o_minus',
+            'AB+': 'units_ab_plus', 'AB-': 'units_ab_minus',
+        }
+        field = field_map.get(req.blood_group)
+        if not field:
+            return Response({'detail': 'Invalid blood group on request.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            # try to find any bank with enough units
+            bank = BloodBank.objects.filter(**{f"{field}__gte": req.units}).first()
+            if not bank:
+                return Response({'detail': 'Insufficient units in all blood banks.'}, status=status.HTTP_400_BAD_REQUEST)
+            # decrement using F() to avoid races
+            BloodBank.objects.filter(pk=bank.pk).update(**{field: F(field) - req.units})
+            req.status = 'approved'
+            req.save()
+
         return Response(self.get_serializer(req).data)
 
     @action(detail=True, methods=['post'])

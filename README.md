@@ -30,6 +30,18 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+## Running tests
+
+Local (recommended in a virtualenv):
+
+- python3 -m venv .venv
+- source .venv/bin/activate
+- pip install -r requirements.txt
+- python manage.py migrate
+- python manage.py test core -v 2
+
+CI: A GitHub Actions workflow is included at `.github/workflows/ci.yml` which runs the core test suite on push and pull requests to `main`.
+
 5. API endpoints (example):
 
 - POST /api/auth/register/  -> register (username, email, password, role)

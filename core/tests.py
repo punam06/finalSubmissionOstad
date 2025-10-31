@@ -78,3 +78,31 @@ class CoreAPITestCase(TestCase):
         self.assertTrue(len(mail.outbox) >= 1)
         found = any('Your blood donation has been approved' in m.subject for m in mail.outbox)
         self.assertTrue(found)
+
+    def test_blood_request_approval_decrements_bank_units(self):
+        # set some units in the bank for O+
+        self.bank.units_o_plus = 5
+        self.bank.save()
+
+        # donor logs in and creates a blood request for 3 units
+        login = self.client.post('/api/auth/login/', {'username': 'donor1', 'password': 'donorpass'}, format='json')
+        token = login.data.get('access')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+
+        resp = self.client.post('/api/blood-requests/', {'blood_group': 'O+', 'units': 3}, format='json')
+        self.assertEqual(resp.status_code, 201)
+        req_id = resp.data.get('id')
+
+        # admin approves
+        login_admin = self.client.post('/api/auth/login/', {'username': 'admin', 'password': 'adminpass'}, format='json')
+        admin_token = login_admin.data.get('access')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {admin_token}')
+
+        approve_url = f'/api/blood-requests/{req_id}/approve/'
+        resp2 = self.client.post(approve_url, {}, format='json')
+        self.assertEqual(resp2.status_code, 200)
+
+        # check the bank units decreased by 3
+        bank = BloodBank.objects.get(pk=self.bank.pk)
+        self.assertEqual(bank.units_o_plus, 2)
+
