@@ -27,6 +27,12 @@ export default function AdminDashboard(){
       <ul>
         {Object.entries(stats.available_units).map(([k,v])=> (<li key={k}>{k}: {v}</li>))}
       </ul>
+
+      <div className="mt-4">
+        <h4>Admin actions</h4>
+        <a className="btn btn-outline-primary me-2" href="/admin/requests">Manage Requests</a>
+        <a className="btn btn-outline-secondary" href="/admin/donations">Manage Donations</a>
+      </div>
     </div>
   )
 }

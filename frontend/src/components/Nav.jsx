@@ -16,6 +16,7 @@ export default function Nav(){
           <a className="btn btn-outline-success me-2" href="/register">Register</a>
           <a className="btn btn-outline-secondary me-2" href="/donate">Donate</a>
           <a className="btn btn-outline-warning me-2" href="/request">Request</a>
+          <a className="btn btn-outline-dark me-2" href="/admin">Admin</a>
           <button className="btn btn-danger" onClick={logout}>Logout</button>
         </div>
       </div>
