@@ -9,6 +9,8 @@ from .serializers import (
     UserSerializer, RegisterSerializer, DonorProfileSerializer,
     BloodBankSerializer, BloodRequestSerializer, DonationSerializer
 )
+from django.conf import settings
+from .utils import send_donation_approved_email, notify_donors_blood_needed
 
 User = get_user_model()
 
@@ -83,6 +85,12 @@ class BloodRequestViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(requester=self.request.user)
+        # Notify donors of this blood group that blood is needed
+        try:
+            notify_donors_blood_needed(serializer.instance)
+        except Exception:
+            # Fail silently to avoid blocking request creation
+            pass
 
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
@@ -119,6 +127,11 @@ class DonationViewSet(viewsets.ModelViewSet):
         donation = self.get_object()
         donation.approved = True
         donation.save()
+        # send email notification to donor
+        try:
+            send_donation_approved_email(donation)
+        except Exception:
+            pass
         # Optionally update blood bank units (left as exercise)
         return Response(self.get_serializer(donation).data)
 
