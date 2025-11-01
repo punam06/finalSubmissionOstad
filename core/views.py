@@ -62,12 +62,15 @@ class DonorProfileViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
     
     def get_queryset(self):
-        """Allow filtering donors by blood_group and availability via query params."""
+        """Allow filtering donors by blood_group, city, and availability via query params."""
         qs = super().get_queryset()
         blood_group = self.request.query_params.get('blood_group')
+        city = self.request.query_params.get('city')
         available = self.request.query_params.get('available')
         if blood_group:
             qs = qs.filter(blood_group__iexact=blood_group)
+        if city:
+            qs = qs.filter(city__icontains=city)
         if available is not None:
             if available.lower() in ['true', '1', 'yes']:
                 qs = qs.filter(available=True)
@@ -81,11 +84,33 @@ class BloodBankViewSet(viewsets.ModelViewSet):
     serializer_class = BloodBankSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
+    def get_queryset(self):
+        """Allow filtering blood banks by name and city via query params."""
+        qs = super().get_queryset()
+        name = self.request.query_params.get('name')
+        city = self.request.query_params.get('city')
+        if name:
+            qs = qs.filter(name__icontains=name)
+        if city:
+            qs = qs.filter(city__icontains=city)
+        return qs
+
 
 class BloodRequestViewSet(viewsets.ModelViewSet):
     queryset = BloodRequest.objects.select_related('requester').all()
     serializer_class = BloodRequestSerializer
     permission_classes = (permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        """Allow filtering blood requests by blood_group and status via query params."""
+        qs = super().get_queryset()
+        blood_group = self.request.query_params.get('blood_group')
+        status_filter = self.request.query_params.get('status')
+        if blood_group:
+            qs = qs.filter(blood_group__iexact=blood_group)
+        if status_filter:
+            qs = qs.filter(status__iexact=status_filter)
+        return qs
 
     def perform_create(self, serializer):
         serializer.save(requester=self.request.user)
@@ -285,16 +310,15 @@ class DonationExportView(generics.GenericAPIView):
     def get(self, request):
         """Export user's donations as CSV"""
         import csv
+        import io
         from django.http import HttpResponse
 
         # Get user's donations
         donations = Donation.objects.filter(donor=request.user)
 
-        # Create CSV response
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="donations.csv"'
-
-        writer = csv.writer(response)
+        # Create CSV in memory
+        output = io.StringIO()
+        writer = csv.writer(output)
         writer.writerow(['Date', 'Blood Group', 'Units', 'Blood Bank', 'Status', 'Notes'])
 
         for donation in donations:
@@ -307,6 +331,9 @@ class DonationExportView(generics.GenericAPIView):
                 donation.notes or '',
             ])
 
+        # Create HTTP response
+        response = HttpResponse(output.getvalue(), content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="donations.csv"'
         return response
 
 
@@ -316,16 +343,15 @@ class RequestExportView(generics.GenericAPIView):
     def get(self, request):
         """Export user's blood requests as CSV"""
         import csv
+        import io
         from django.http import HttpResponse
 
         # Get user's requests
         blood_requests = BloodRequest.objects.filter(user=request.user)
 
-        # Create CSV response
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="blood_requests.csv"'
-
-        writer = csv.writer(response)
+        # Create CSV in memory
+        output = io.StringIO()
+        writer = csv.writer(output)
         writer.writerow(['Date', 'Blood Group', 'Units', 'Reason', 'Hospital', 'Status', 'Urgent', 'Notes'])
 
         for req in blood_requests:
@@ -340,4 +366,7 @@ class RequestExportView(generics.GenericAPIView):
                 req.notes or '',
             ])
 
+        # Create HTTP response
+        response = HttpResponse(output.getvalue(), content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="blood_requests.csv"'
         return response
