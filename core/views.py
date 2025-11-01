@@ -210,3 +210,70 @@ class AdminDashboardView(APIView):
             'pending_requests': pending_requests,
             'available_units': units,
         })
+
+
+class AnalyticsView(generics.GenericAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        """Get analytics and statistics about the blood donation system"""
+        # Donation stats
+        total_donations = Donation.objects.count()
+        approved_donations = Donation.objects.filter(status='approved').count()
+        pending_donations = Donation.objects.filter(status='pending').count()
+        total_units_donated = Donation.objects.filter(
+            status__in=['approved', 'completed']
+        ).values_list('units_donated', flat=True)
+        total_units_donated = sum(total_units_donated) if total_units_donated else 0
+
+        # Request stats
+        total_requests = BloodRequest.objects.count()
+        pending_requests = BloodRequest.objects.filter(status='pending').count()
+        fulfilled_requests = BloodRequest.objects.filter(status__in=['fulfilled', 'approved']).count()
+        total_units_requested = BloodRequest.objects.values_list('units_required', flat=True)
+        total_units_requested = sum(total_units_requested) if total_units_requested else 0
+
+        # Donor stats
+        total_donors = DonorProfile.objects.count()
+        available_donors = DonorProfile.objects.filter(available=True).count()
+        donors_by_blood_group = {}
+        for bg in ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']:
+            donors_by_blood_group[bg] = DonorProfile.objects.filter(blood_group=bg).count()
+
+        # Blood availability
+        banks = BloodBank.objects.all()
+        blood_availability = {
+            'A+': sum(b.units_a_plus for b in banks),
+            'A-': sum(b.units_a_minus for b in banks),
+            'B+': sum(b.units_b_plus for b in banks),
+            'B-': sum(b.units_b_minus for b in banks),
+            'O+': sum(b.units_o_plus for b in banks),
+            'O-': sum(b.units_o_minus for b in banks),
+            'AB+': sum(b.units_ab_plus for b in banks),
+            'AB-': sum(b.units_ab_minus for b in banks),
+        }
+
+        # Calculate fulfillment rate
+        fulfillment_rate = (fulfilled_requests / total_requests * 100) if total_requests > 0 else 0
+
+        return Response({
+            'donations': {
+                'total': total_donations,
+                'approved': approved_donations,
+                'pending': pending_donations,
+                'total_units_donated': total_units_donated,
+            },
+            'requests': {
+                'total': total_requests,
+                'pending': pending_requests,
+                'fulfilled': fulfilled_requests,
+                'total_units_requested': total_units_requested,
+                'fulfillment_rate': round(fulfillment_rate, 2),
+            },
+            'donors': {
+                'total': total_donors,
+                'available': available_donors,
+                'by_blood_group': donors_by_blood_group,
+            },
+            'blood_availability': blood_availability,
+        })
