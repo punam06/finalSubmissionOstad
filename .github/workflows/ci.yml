@@ -47,12 +47,16 @@ jobs:
         run: |
           python manage.py migrate --noinput
 
+      - name: Check installed apps
+        run: |
+          python manage.py shell -c "from django.conf import settings; print('INSTALLED_APPS:', settings.INSTALLED_APPS)"
+
       - name: Run backend tests (capture logs)
         run: |
           mkdir -p test-results
           # ensure we capture the real test exit code when piping to tee
           set -o pipefail
-          python manage.py test core -v 2 2>&1 | tee test-results/backend-tests.log
+          python manage.py test core --keepdb -v 2 2>&1 | tee test-results/backend-tests.log
           exit_code=${PIPESTATUS[0]}
           echo "backend tests exit code: $exit_code"
           exit $exit_code
