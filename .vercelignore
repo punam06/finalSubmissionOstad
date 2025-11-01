@@ -1,0 +1,16 @@
+node_modules
+.git
+.github
+__pycache__
+*.pyc
+.pytest_cache
+.env
+.env.local
+docker-compose.yml
+Dockerfile
+manage.py
+requirements.txt
+core/
+blood_management/
+templates/
+*.md
