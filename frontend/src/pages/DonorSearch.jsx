@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { API } from '../services/api'
+import api from '../services/api'
 import { useToast } from '../components/ToastContext'
 
 export default function DonorSearch() {
@@ -19,7 +19,7 @@ export default function DonorSearch() {
   const fetchDonors = async () => {
     try {
       setLoading(true)
-      const response = await API.get('/api/donor-profiles/')
+      const response = await api.get('donor-profiles/')
       setDonors(response.data)
     } catch (err) {
       addToast('Failed to fetch donors', 'error')

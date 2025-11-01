@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { API } from '../services/api'
+import api from '../services/api'
 import { useToast } from '../components/ToastContext'
 
 export default function DonationHistory() {
@@ -15,7 +15,7 @@ export default function DonationHistory() {
   const fetchDonations = async () => {
     try {
       setLoading(true)
-      const response = await API.get('/api/donations/')
+      const response = await api.get('donations/')
       setDonations(response.data)
     } catch (err) {
       addToast('Failed to fetch donation history', 'error')

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { API } from '../services/api'
+import api from '../services/api'
 import { useToast } from '../components/ToastContext'
 
 export default function RequestHistory() {
@@ -15,7 +15,7 @@ export default function RequestHistory() {
   const fetchRequests = async () => {
     try {
       setLoading(true)
-      const response = await API.get('/api/blood-requests/')
+      const response = await api.get('blood-requests/')
       setRequests(response.data)
     } catch (err) {
       addToast('Failed to fetch request history', 'error')

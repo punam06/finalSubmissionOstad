@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { API } from '../services/api'
+import api from '../services/api'
 import { useToast } from '../components/ToastContext'
 
 export default function BloodBanks() {
@@ -16,7 +16,7 @@ export default function BloodBanks() {
   const fetchBanks = async () => {
     try {
       setLoading(true)
-      const response = await API.get('/api/blood-banks/')
+      const response = await api.get('blood-banks/')
       setBanks(response.data)
     } catch (err) {
       addToast('Failed to fetch blood banks', 'error')
