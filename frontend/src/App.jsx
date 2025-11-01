@@ -1,5 +1,5 @@
-import React from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Nav from './components/Nav'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -17,8 +17,22 @@ import BloodBanks from './pages/BloodBanks'
 import DonorSearch from './pages/DonorSearch'
 import DonationHistory from './pages/DonationHistory'
 import RequestHistory from './pages/RequestHistory'
+import api from './services/api'
 
 export default function App(){
+  const [isAuthenticated, setIsAuthenticated] = useState(null)
+
+  useEffect(() => {
+    api.loadToken()
+    const token = localStorage.getItem('bm_access_token')
+    setIsAuthenticated(!!token)
+  }, [])
+
+  // Show nothing while checking authentication
+  if (isAuthenticated === null) {
+    return <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>
+  }
+
   return (
     <ToastProvider>
       <BrowserRouter>
@@ -37,7 +51,7 @@ export default function App(){
             <Route path="/donors" element={<ProtectedRoute><DonorSearch/></ProtectedRoute>} />
             <Route path="/donations/history" element={<ProtectedRoute><DonationHistory/></ProtectedRoute>} />
             <Route path="/requests/history" element={<ProtectedRoute><RequestHistory/></ProtectedRoute>} />
-            <Route path="/" element={<ProtectedRoute><DonorDashboard/></ProtectedRoute>} />
+            <Route path="/" element={isAuthenticated ? <ProtectedRoute><DonorDashboard/></ProtectedRoute> : <Navigate to="/login" replace />} />
           </Routes>
         </div>
       </BrowserRouter>
