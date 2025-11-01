@@ -56,6 +56,25 @@ export default function RequestHistory() {
     return requests.filter(r => r.status === 'fulfilled' || r.status === 'approved').length
   }
 
+  const exportToCSV = async () => {
+    try {
+      const response = await API.get('/api/requests/export/', {
+        responseType: 'blob'
+      })
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', 'blood_requests.csv')
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode.removeChild(link)
+      addToast('Requests exported successfully', 'success')
+    } catch (err) {
+      addToast('Failed to export requests', 'error')
+      console.error(err)
+    }
+  }
+
   if (loading) {
     return (
       <div className="alert alert-info mt-4" role="alert">
@@ -97,18 +116,28 @@ export default function RequestHistory() {
       </div>
 
       {/* Sort Controls */}
-      <div className="mb-3">
-        <label className="form-label">Sort By:</label>
-        <select
-          className="form-select"
-          style={{ maxWidth: '200px' }}
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-        >
-          <option value="date-desc">Newest First</option>
-          <option value="date-asc">Oldest First</option>
-          <option value="status">Status</option>
-        </select>
+      <div className="mb-3 d-flex align-items-end gap-3">
+        <div>
+          <label className="form-label">Sort By:</label>
+          <select
+            className="form-select"
+            style={{ maxWidth: '200px' }}
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="date-desc">Newest First</option>
+            <option value="date-asc">Oldest First</option>
+            <option value="status">Status</option>
+          </select>
+        </div>
+        {requests.length > 0 && (
+          <button
+            className="btn btn-success"
+            onClick={exportToCSV}
+          >
+            📥 Export as CSV
+          </button>
+        )}
       </div>
 
       {/* Requests List */}

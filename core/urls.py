@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     RegisterView, UserViewSet, DonorProfileViewSet,
     BloodBankViewSet, BloodRequestViewSet, DonationViewSet,
-    AdminDashboardView, AnalyticsView,
+    AdminDashboardView, AnalyticsView, DonationExportView, RequestExportView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -20,6 +20,8 @@ urlpatterns = [
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('admin/dashboard/', AdminDashboardView.as_view(), name='admin-dashboard'),
     path('analytics/', AnalyticsView.as_view(), name='analytics'),
+    path('donations/export/', DonationExportView.as_view(), name='donation-export'),
+    path('requests/export/', RequestExportView.as_view(), name='request-export'),
     # Simple template dashboards
     path('dashboard/donor/', lambda request: __import__('django.shortcuts').shortcuts.render(request, 'donor_dashboard.html'), name='donor-dashboard'),
     path('dashboard/admin/', lambda request: __import__('django.shortcuts').shortcuts.render(request, 'admin_dashboard.html'), name='admin-dashboard-page'),

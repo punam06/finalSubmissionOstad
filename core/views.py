@@ -277,3 +277,67 @@ class AnalyticsView(generics.GenericAPIView):
             },
             'blood_availability': blood_availability,
         })
+
+
+class DonationExportView(generics.GenericAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        """Export user's donations as CSV"""
+        import csv
+        from django.http import HttpResponse
+
+        # Get user's donations
+        donations = Donation.objects.filter(donor=request.user)
+
+        # Create CSV response
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="donations.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(['Date', 'Blood Group', 'Units', 'Blood Bank', 'Status', 'Notes'])
+
+        for donation in donations:
+            writer.writerow([
+                donation.created_at.strftime('%Y-%m-%d %H:%M'),
+                donation.blood_group,
+                donation.units_donated,
+                donation.blood_bank.name if donation.blood_bank else 'N/A',
+                donation.status,
+                donation.notes or '',
+            ])
+
+        return response
+
+
+class RequestExportView(generics.GenericAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        """Export user's blood requests as CSV"""
+        import csv
+        from django.http import HttpResponse
+
+        # Get user's requests
+        blood_requests = BloodRequest.objects.filter(user=request.user)
+
+        # Create CSV response
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="blood_requests.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(['Date', 'Blood Group', 'Units', 'Reason', 'Hospital', 'Status', 'Urgent', 'Notes'])
+
+        for req in blood_requests:
+            writer.writerow([
+                req.created_at.strftime('%Y-%m-%d %H:%M'),
+                req.blood_group,
+                req.units_required,
+                req.reason or '',
+                req.hospital_name or 'N/A',
+                req.status,
+                'Yes' if req.is_urgent else 'No',
+                req.notes or '',
+            ])
+
+        return response
