@@ -13,6 +13,10 @@ import AdminDonations from './pages/AdminDonations'
 import ProtectedRoute from './components/ProtectedRoute'
 import Profile from './pages/Profile'
 import { ToastProvider } from './components/ToastContext'
+import BloodBanks from './pages/BloodBanks'
+import DonorSearch from './pages/DonorSearch'
+import DonationHistory from './pages/DonationHistory'
+import RequestHistory from './pages/RequestHistory'
 
 export default function App(){
   return (
@@ -29,6 +33,10 @@ export default function App(){
             <Route path="/admin/requests" element={<ProtectedRoute><AdminRequests/></ProtectedRoute>} />
             <Route path="/admin/donations" element={<ProtectedRoute><AdminDonations/></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile/></ProtectedRoute>} />
+            <Route path="/blood-banks" element={<ProtectedRoute><BloodBanks/></ProtectedRoute>} />
+            <Route path="/donors" element={<ProtectedRoute><DonorSearch/></ProtectedRoute>} />
+            <Route path="/donations/history" element={<ProtectedRoute><DonationHistory/></ProtectedRoute>} />
+            <Route path="/requests/history" element={<ProtectedRoute><RequestHistory/></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><DonorDashboard/></ProtectedRoute>} />
           </Routes>
         </div>
